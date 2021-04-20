@@ -1,22 +1,17 @@
 import java.awt.*;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
 import javax.crypto.Cipher;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.security.*;
 
 public class ServerWithoutSecurity {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		String reply = "Hello, this is Secstore!";
     	int port = 4321;
     	if (args.length > 0) port = Integer.parseInt(args[0]);
@@ -29,11 +24,12 @@ public class ServerWithoutSecurity {
 		FileOutputStream fileOutputStream = null;
 		BufferedOutputStream bufferedFileOutputStream = null;
 		PrivateKey privateKey;
-		try {
-			privateKey = PrivateKeyReader.get("/Users/kaikang/Desktop/ProgrammingAssignment2/PA2/private_key.der");
-		} catch (Exception exc){
 
-		}
+		privateKey = PrivateKeyReader.get("/Users/kaikang/Desktop/PA2/private_key.der");
+		InputStream fis = new FileInputStream("/Users/kaikang/Desktop/PA2/certificate_1003625.crt");
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		X509Certificate CAcert =(X509Certificate)cf.generateCertificate(fis);
+		String stringCert = CAcert.toString();
 
 		try {
 			welcomeSocket = new ServerSocket(port);
@@ -87,15 +83,17 @@ public class ServerWithoutSecurity {
 					byte[] msg = new byte[numBytes];
 					fromClient.readFully(msg,0,numBytes);
 					System.out.println(new String(msg,0,numBytes));
+
 					MessageDigest md = MessageDigest.getInstance("MD5");
 					// msg hashed
 					md.update(reply.getBytes());
 					// hashed msg to byte[]
 					byte[] byt = md.digest();
 					Cipher desCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-					desCipher.init(Cipher.DECRYPT_MODE,privateKey);
+					desCipher.init(Cipher.ENCRYPT_MODE,privateKey);
 					// encrypt hashed msg
 					byte[] encrypt = desCipher.doFinal(byt);
+
 					System.out.println(("Sending signed msg..."));
 					toClient.writeInt(encrypt.length);
 					toClient.write(encrypt);
@@ -108,6 +106,11 @@ public class ServerWithoutSecurity {
 					byte[] msg1 = new byte[numBytes1];
 					fromClient.readFully(msg1,0,numBytes1);
 					System.out.println(new String(msg1,0,numBytes1));
+
+					System.out.println(("Sending cert..."));
+                    toClient.writeUTF(Base64.getEncoder().encodeToString(CAcert.getEncoded()));
+                    //toClient.writeInt(stringCert.getBytes().length);
+					//toClient.write(stringCert.getBytes());
 				}
 
 			}

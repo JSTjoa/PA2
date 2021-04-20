@@ -1,3 +1,5 @@
+
+import javax.crypto.Cipher;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,7 +9,10 @@ import java.io.*;
 import java.nio.*;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.*;
+import java.util.Base64;
 
 public class ClientWithoutSecurity {
 
@@ -61,6 +66,31 @@ public class ClientWithoutSecurity {
 			toServer.writeInt(3);
 			toServer.writeInt(msg1.getBytes().length);
 			toServer.write(msg1.getBytes());
+
+			System.out.println("Receiving cert..");
+			String certString = fromServer.readUTF();
+			byte[] cert_byte = Base64.getDecoder().decode(certString);
+			InputStream bis = new ByteArrayInputStream(cert_byte);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			System.out.println(bis);
+			X509Certificate CAcert =(X509Certificate)cf.generateCertificate(bis);
+			System.out.println("Sending cert req...");
+			PublicKey publicKey = CAcert.getPublicKey();
+			System.out.println("Sending cert req...");
+
+			CAcert.checkValidity();
+			System.out.println("Sending cert req...");
+
+			CAcert.verify(publicKey);
+			System.out.println("Sending cert req...");
+
+			Cipher desCipher2 = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			desCipher2.init(Cipher.DECRYPT_MODE, publicKey);
+			//decrypt encrypt_msg
+			byte[] decypt_msg = desCipher2.doFinal(encypt_msg);
+			String base64format2 = Base64.getEncoder().encodeToString(decypt_msg);
+			System.out.println(base64format2);
+
 
 
 			System.out.println("Sending file...");
