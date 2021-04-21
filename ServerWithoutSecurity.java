@@ -16,12 +16,10 @@ public class ServerWithoutSecurity {
     	int port = 4321;
     	if (args.length > 0) port = Integer.parseInt(args[0]);
 		ServerSocket serverSocket = new ServerSocket(6666);
-
 		ServerSocket welcomeSocket = null;
 		Socket connectionSocket = null;
 		DataOutputStream toClient = null;
 		DataInputStream fromClient = null;
-
 		FileOutputStream fileOutputStream = null;
 		BufferedOutputStream bufferedFileOutputStream = null;
 		PrivateKey privateKey;
@@ -39,18 +37,22 @@ public class ServerWithoutSecurity {
 
 			while (!connectionSocket.isClosed()) {
 				int packetType = fromClient.readInt();
+
 				// If the packet is for transferring the filename
 				if (packetType == 0) {
 					int numBytes = fromClient.readInt();
 					byte[] filename = new byte[numBytes];
+
 					System.out.println("Receiving file...");
 					fromClient.readFully(filename, 0, numBytes);
 					fileOutputStream = new FileOutputStream("recv_"+new String(filename, 0, numBytes));
 					bufferedFileOutputStream = new BufferedOutputStream(fileOutputStream);
+
 				} else if (packetType == 1) {
 					int numBytes = fromClient.readInt();
 					byte[] block = new byte[numBytes];
 					fromClient.readFully(block, 0, numBytes);
+
 					if (numBytes > 0) {
 						bufferedFileOutputStream.write(block, 0, numBytes);
 					}
@@ -60,9 +62,7 @@ public class ServerWithoutSecurity {
 							bufferedFileOutputStream.close();
 							fileOutputStream.close();
 						}
-						//fromClient.close();
-						//toClient.close();
-						//connectionSocket.close();
+
 					}
 
 				}	else if (packetType==2){
@@ -73,7 +73,6 @@ public class ServerWithoutSecurity {
 					byte[] msg = new byte[numBytes];
 					fromClient.readFully(msg,0,numBytes);
 					System.out.println(new String(msg,0,numBytes));
-
 					Cipher desCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 					desCipher.init(Cipher.ENCRYPT_MODE,privateKey);
 					//convert string to byte

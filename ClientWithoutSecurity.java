@@ -21,42 +21,24 @@ public class ClientWithoutSecurity {
 	public static void main(String[] args) throws Exception {
 		String msg = "Hello SecStore, please prove your identity!";
 		String msg1 = "Give me your certificate signed by CA";
-		//String filename = "OGRE.mp4";
-		InputStream fis = new FileInputStream(
-				"C:\\Users\\kai kang\\Desktop\\PA2\\cacsertificate.crt");
-		// "C:\\Users\\dksat\\Documents\\GitHub\\ProgrammingAssignment2\\PA2\\docs2\\cacsertificate.crt");
+		InputStream fis = new FileInputStream("C:\\Users\\kai kang\\Desktop\\PA2\\cacsertificate.crt");
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
 		X509Certificate CAcert =(X509Certificate)cf.generateCertificate(fis);
 
 		System.out.println("Getting file from server...");
-
 		PublicKey CAKey = CAcert.getPublicKey();
-
-		//if (args.length > 0) filename = args[0];
-
     	String serverAddress = "localhost";
-    	//if (args.length > 1) filename = args[1];
-
     	int port = 4321;
-    	//if (args.length > 2) port = Integer.parseInt(args[2]);
-
 		int numBytes = 0;
-
 		Socket clientSocket = null;
-
         DataOutputStream toServer = null;
         DataInputStream fromServer = null;
-
     	FileInputStream fileInputStream = null;
         BufferedInputStream bufferedFileInputStream = null;
-
 		long timeStarted = System.nanoTime();
 
 		try {
-
-
 			System.out.println("Establishing connection to server...");
-
 			// Connect to server and get the input and output streams
 			clientSocket = new Socket(serverAddress, port);
 			toServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -66,7 +48,6 @@ public class ClientWithoutSecurity {
 			toServer.writeInt(2);
 			toServer.writeInt(msg.getBytes().length);
 			toServer.write(msg.getBytes());
-			//reading encrypt msg
 
 			System.out.println("Receiving signed msg...");
 			// reading encrypt msg
@@ -97,21 +78,25 @@ public class ClientWithoutSecurity {
 			//
 			String decrypt_string = new String(decypt_msg,StandardCharsets.UTF_8);
 			System.out.println(decrypt_string);
+
 			String reply = "Hello, this is Secstore!";
 			if(!decrypt_string.equals(reply)){
 				fromServer.close();
 				toServer.close();
 				System.out.println("Bye!");
 			}
+
 			System.out.println("Handshake for file upload");
 			Scanner scanner = new Scanner(System.in);
 			String filename;
+
 			while(true) {
 				System.out.println("Please enter a file name");
 				filename = scanner.next();
 					if(filename.equals("exit")){
 						break;
 					}
+
 				System.out.println("Sending file...");
 				// Send the filename
 				toServer.writeInt(0);
@@ -123,6 +108,7 @@ public class ClientWithoutSecurity {
 				bufferedFileInputStream = new BufferedInputStream(fileInputStream);
 				byte[] fromFileBuffer = new byte[4092];
 				// send the file
+
 				for (boolean fileEnded = false; !fileEnded; ) {
 					numBytes = bufferedFileInputStream.read(fromFileBuffer);
 					fileEnded = numBytes < 4092;
@@ -135,15 +121,11 @@ public class ClientWithoutSecurity {
 				bufferedFileInputStream.close();
 				fileInputStream.close();
 			}
-
-
-
 			System.out.println("Closing connection...");
 			toServer.close();
 			fromServer.close();
 			clientSocket.close();
 		} catch (Exception e) {e.printStackTrace();}
-
 		long timeTaken = System.nanoTime() - timeStarted;
 		System.out.println("Program took: " + timeTaken/1000000.0 + "ms to run");
 	}
