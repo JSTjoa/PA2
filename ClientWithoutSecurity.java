@@ -31,7 +31,7 @@ public class ClientWithoutSecurity {
 		String nonce = new String(charc);
 
 		String msg1 = "Give me your certificate signed by CA";
-		InputStream fis = new FileInputStream("C:\\Users\\kai kang\\Desktop\\PA2\\cacsertificate.crt");
+		InputStream fis = new FileInputStream("cacsertificate.crt");
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
 		X509Certificate CAcert =(X509Certificate)cf.generateCertificate(fis);
 
@@ -45,7 +45,7 @@ public class ClientWithoutSecurity {
         DataInputStream fromServer = null;
     	FileInputStream fileInputStream = null;
         BufferedInputStream bufferedFileInputStream = null;
-		long timeStarted = System.nanoTime();
+//		long timeStarted = System.nanoTime();
 
 		try {
 			System.out.println("Establishing connection to server...");
@@ -106,6 +106,9 @@ public class ClientWithoutSecurity {
 					}
 
 				System.out.println("Sending file...");
+				// Start timer here
+				long timeStarted = System.nanoTime();
+
 				// Send the filename
 				toServer.writeInt(0);
 				toServer.writeInt(filename.getBytes().length);
@@ -128,14 +131,17 @@ public class ClientWithoutSecurity {
 				System.out.println("File sent...");
 				bufferedFileInputStream.close();
 				fileInputStream.close();
+
+				long timeTaken = System.nanoTime() - timeStarted;
+				System.out.println("Program took: " + timeTaken/1000000.0 + "ms to run");
 			}
 			System.out.println("Closing connection...");
 			toServer.close();
 			fromServer.close();
 			clientSocket.close();
 		} catch (Exception e) {e.printStackTrace();}
-		long timeTaken = System.nanoTime() - timeStarted;
-		System.out.println("Program took: " + timeTaken/1000000.0 + "ms to run");
+//		long timeTaken = System.nanoTime() - timeStarted;
+//		System.out.println("Program took: " + timeTaken/1000000.0 + "ms to run");
 	}
 
 

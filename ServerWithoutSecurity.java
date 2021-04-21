@@ -24,8 +24,8 @@ public class ServerWithoutSecurity {
 		BufferedOutputStream bufferedFileOutputStream = null;
 		PrivateKey privateKey;
 		final int FILE_SIZE = Integer.MAX_VALUE;
-		privateKey = PrivateKeyReader.get("C:\\Users\\kai kang\\Desktop\\PA2\\private_key.der");
-		InputStream fis = new FileInputStream("C:\\Users\\kai kang\\Desktop\\PA2\\certificate_1003625.crt");
+		privateKey = PrivateKeyReader.get("private_key.der");
+		InputStream fis = new FileInputStream("certificate_1003625.crt");
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
 		X509Certificate CAcert =(X509Certificate)cf.generateCertificate(fis);
 
