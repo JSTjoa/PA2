@@ -29,6 +29,7 @@ public class ServerCP2 {
 		FileOutputStream fileOutputStream = null;
 		BufferedOutputStream bufferedFileOutputStream = null;
 		PrivateKey privateKey;
+		SecretKey sessionKey = null;
 		final int FILE_SIZE = Integer.MAX_VALUE;
 		privateKey = PrivateKeyReader.get("private_key.der");
 		InputStream fis = new FileInputStream("certificate_1003625.crt");
@@ -40,17 +41,6 @@ public class ServerCP2 {
 			connectionSocket = welcomeSocket.accept();
 			fromClient = new DataInputStream(connectionSocket.getInputStream());
 			toClient = new DataOutputStream(connectionSocket.getOutputStream());
-
-			Cipher desCipher2 = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-			desCipher2.init(Cipher.DECRYPT_MODE, privateKey);
-
-			int AESNumBytes = fromClient.readInt();
-			byte[] AESSessionKey = new byte[AESNumBytes];
-			fromClient.readFully(AESSessionKey, 0, AESNumBytes);
-			Cipher decryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-			decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
-			byte[] decAESSessionKey = decryptCipher.doFinal(AESSessionKey);
-			SecretKey sessionKey = new SecretKeySpec(decAESSessionKey, 0, decAESSessionKey.length, "AES");
 
 			while (!connectionSocket.isClosed()) {
 				int packetType = fromClient.readInt();
@@ -64,6 +54,15 @@ public class ServerCP2 {
 					fromClient.readFully(filename, 0, numBytes);
 					fileOutputStream = new FileOutputStream("recv_"+new String(filename, 0, numBytes));
 					bufferedFileOutputStream = new BufferedOutputStream(fileOutputStream);
+
+				} else if (packetType==4) {
+					int AESNumBytes = fromClient.readInt();
+					byte[] AESSessionKey = new byte[AESNumBytes];
+					fromClient.readFully(AESSessionKey, 0, AESNumBytes);
+					Cipher decryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+					decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+					byte[] decAESSessionKey = decryptCipher.doFinal(AESSessionKey);
+					sessionKey = new SecretKeySpec(decAESSessionKey, 0, decAESSessionKey.length, "AES");
 
 				} else if (packetType == 1) {
 					int numBytes = fromClient.readInt();

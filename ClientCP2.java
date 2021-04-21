@@ -120,6 +120,8 @@ public class ClientCP2 {
 				byte[] AESKeyBytes = AESKey.getEncoded();
 				byte[] encryptedAESKey = cipher.doFinal(AESKeyBytes);
 
+				toServer.writeInt(4);
+//				toServer.writeUTF(Base64.getEncoder().encodeToString(encryptedAESKey));
 				toServer.writeInt(encryptedAESKey.length);
 				toServer.write(encryptedAESKey);
 				toServer.flush();
