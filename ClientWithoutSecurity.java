@@ -14,12 +14,22 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.*;
 import java.util.Base64;
+import java.util.Random;
 import java.util.Scanner;
 
 public class ClientWithoutSecurity {
 
 	public static void main(String[] args) throws Exception {
 		String msg = "Hello SecStore, please prove your identity!";
+		Random random = new Random();
+		int length;
+		length = random.nextInt(10);
+		char[] charc = new char[length];
+		for (int i =0;i<length;i++){
+			charc[i] = msg.charAt(random.nextInt(msg.length()));
+		}
+		String nonce = new String(charc);
+
 		String msg1 = "Give me your certificate signed by CA";
 		InputStream fis = new FileInputStream("C:\\Users\\kai kang\\Desktop\\PA2\\cacsertificate.crt");
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -44,12 +54,12 @@ public class ClientWithoutSecurity {
 			toServer = new DataOutputStream(clientSocket.getOutputStream());
 			fromServer = new DataInputStream(clientSocket.getInputStream());
 
-			System.out.println("Sending msg...");
+			System.out.println("Sending nonce...");
 			toServer.writeInt(2);
-			toServer.writeInt(msg.getBytes().length);
-			toServer.write(msg.getBytes());
+			toServer.writeInt(nonce.getBytes().length);
+			toServer.write(nonce.getBytes());
 
-			System.out.println("Receiving signed msg...");
+			System.out.println("Receiving signed nonce...");
 			// reading encrypt msg
 			int	encrypt_numBytes = fromServer.readInt();
 			// encrypt msg in bytes[]
@@ -77,10 +87,8 @@ public class ClientWithoutSecurity {
 			byte[] decypt_msg = desCipher2.doFinal(encypt_msg);
 			//
 			String decrypt_string = new String(decypt_msg,StandardCharsets.UTF_8);
-			System.out.println(decrypt_string);
 
-			String reply = "Hello, this is Secstore!";
-			if(!decrypt_string.equals(reply)){
+			if(!decrypt_string.equals(nonce)){
 				fromServer.close();
 				toServer.close();
 				System.out.println("Bye!");

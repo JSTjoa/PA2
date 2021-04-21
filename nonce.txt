@@ -1,0 +1,3 @@
+Explain ONE problem (security vulnerability) in your handout for submission, and give a fix for that problem you described in your implementation. 
+In this case, although there is a certificate, the intruder can just record and replay/playback the message to request for connection to the Server. Server cannot tell if the incoming message comes from Client or the intruder. This is called the replay/playback attack.
+By implementing a one-time nonce, the intruder would not be able to do the replay/playback attack. 

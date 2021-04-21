@@ -66,19 +66,19 @@ public class ServerWithoutSecurity {
 					}
 
 				}	else if (packetType==2){
-					System.out.println(("Receiving msg..."));
+					System.out.println(("Receiving nonce..."));
 					// reading the msg
 					int numBytes = fromClient.readInt();
 					// msg in bytes[]
 					byte[] msg = new byte[numBytes];
 					fromClient.readFully(msg,0,numBytes);
-					System.out.println(new String(msg,0,numBytes));
 					Cipher desCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 					desCipher.init(Cipher.ENCRYPT_MODE,privateKey);
 					//convert string to byte
-					byte[] encrypt = desCipher.doFinal(reply.getBytes());
+					String nonce = new String(msg,0,numBytes);
+					byte[] encrypt = desCipher.doFinal(nonce.getBytes());
 
-					System.out.println(("Sending signed msg..."));
+					System.out.println(("Sending signed nonce..."));
 					toClient.writeInt(encrypt.length);
 					toClient.write(encrypt);
 
